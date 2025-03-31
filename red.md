@@ -161,3 +161,218 @@ df = df.sort_values(['segment', 'shipping_mode', 'order_id'])
 ```
 
 Finally, the DataFrame is sorted by segment, shipping_mode, and order_id to organize the output neatly.
+
+## R Code
+
+The R code uses `tidyverse` to read, clean, and transform the data. Below is the full implementation followed by a step-by-step explanation.
+
+### R Implementation
+
+```r
+# Load required libraries
+library(readxl)    # For reading Excel files
+library(dplyr)     # For data manipulation (e.g., select, rename, etc.)
+library(tidyr)     # For reshaping data (pivot_longer)
+library(glue)      # For string interpolation
+library(janitor)   # For cleaning column names
+
+# Define segments and shipping modes for later use
+segments <- c('consumer', 'corporate', 'home_office')
+ship_modes <- c('first_class', 'same_day', 'second_class', 'standard_class')
+
+# Create names for each combination of segment and shipping mode
+group_shipping_names <- paste0(
+  rep(segments, each = length(ship_modes)),  # Repeat each segment for every ship mode
+  '_',
+  rep(ship_modes, length(segments))          # Repeat each ship mode for every segment
+)
+
+# Define a regular expression pattern to extract the segment and shipping mode from the column names
+regex <- glue::glue('({paste0(segments, collapse = "|")})_(.*)')
+
+# Read the data from an Excel file (data.xlsx), specifically from the 'Dirty 1' sheet
+# The first row will be skipped, and column names will be cleaned
+df <- read_xlsx("data.xlsx", sheet = 'Dirty 1',
+                skip = 1,            # Skip the first row
+                .name_repair = make_clean_names)  # Clean column names to make them valid
+
+# Clean and reshape the dataframe
+df_cleaned <- df |>
+  # Remove columns starting with "x" (often used to indicate unwanted columns in Excel data)
+  select(!starts_with("x")) |>
+  
+  # Rename the 'ship_mode' column to 'order_id' (likely to match your desired output structure)
+  rename(order_id = "ship_mode") |>
+  
+  # Remove the first row (typically header or metadata that is not part of the data)
+  slice(-1) |>
+  
+  # Rename columns with dynamic names created earlier for segment and shipping modes
+  rename_with(~c('order_id', group_shipping_names)) |>
+  
+  # Reshape the data by pivoting it longer, so each row represents a single 'segment' and 'shipping_mode' combination
+  # The regex extracts the 'segment' and 'shipping_mode' from the column names
+  pivot_longer(cols = -1, names_pattern = regex, 
+               names_to = c('segment', 'shipping_mode'),  # Split column names into segment and shipping_mode
+               values_drop_na = TRUE) |>
+  
+  # Arrange the data by 'segment', 'shipping_mode', and 'order_id' for neat organization
+  arrange(segment, shipping_mode, order_id)
+
+# Print the cleaned data
+print(df_cleaned)
+
+```
+
+### Step-by-Step Explanation of R Code
+
+---
+
+### **1. Load Libraries**
+
+```r
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(glue)
+library(janitor)
+```
+
+This code loads the necessary packages:
+
+- **`readxl`**: For reading Excel files.
+- **`dplyr`**: For data manipulation.
+- **`tidyr`**: For reshaping data.
+- **`glue`**: For string operations.
+- **`janitor`**: For cleaning column names.
+
+---
+
+### **2. Define Segments and Ship Modes**
+
+```r
+segments &lt;- c('consumer', 'corporate', 'home_office')
+ship_modes &lt;- c('first_class', 'same_day', 'second_class', 'standard_class')
+```
+
+Defines vectors for segments and shipping modes using the `c()` function:
+
+- `segments`: Represents different customer segments.
+- `ship_modes`: Represents various shipping modes.
+
+---
+
+### **3. Generate Group Shipping Names**
+
+```r
+group_shipping_names &lt;- paste0(
+  rep(segments, each = length(ship_modes)),
+  '_',
+  rep(ship_modes, length(segments))
+)
+```
+
+Combines segment and shipping mode names using `paste0()` and `rep()` to create 12 column names (e.g., `"consumer_first_class"`).
+
+---
+
+### **4. Create Regex**
+
+```r
+regex &lt;- glue::glue('({paste0(segments, collapse = "|")})_(.*)')
+```
+
+Constructs a regex pattern (e.g., `(consumer|corporate|home_office)_(.*)`) to split column names later.
+
+---
+
+### **5. Read the Data**
+
+```r
+df &lt;- read_xlsx("data.xlsx", sheet = 'Dirty 1',
+                skip = 1,
+                .name_repair = make_clean_names)
+```
+
+Reads the Excel file named `"data.xlsx"`:
+
+- `sheet = 'Dirty 1'`: Specifies the sheet to read.
+- `skip = 1`: Skips the first row, which is assumed to be irrelevant.
+- `.name_repair = make_clean_names`: Cleans column names by converting spaces to underscores.
+
+---
+
+### **6. Remove Unnecessary Columns**
+
+```r
+df &lt;- df %&gt;% select(!starts_with("x"))
+```
+
+Drops columns starting with `"x"`, which are assumed artifacts from Excel.
+
+---
+
+### **7. Rename First Column**
+
+```r
+df &lt;- df %&gt;% rename(order_id = "ship_mode")
+```
+
+Renames the `"ship_mode"` column to `"order_id"` to reflect its actual content, which consists of order IDs.
+
+---
+
+### **8. Drop First Row**
+
+```r
+df &lt;- df %&gt;% slice(-1)
+```
+
+Removes the first row, which contains redundant shipping mode labels.
+
+---
+
+### **9. Rename Remaining Columns**
+
+```r
+df &lt;- df %&gt;% rename_with(~c('order_id', group_shipping_names))
+```
+
+Assigns new names to all columns:
+
+- `"order_id"` for the first column.
+- The 12 generated group shipping names for the remaining columns.
+
+---
+
+### **10. Pivot to Long Format**
+
+```r
+df &lt;- df %&gt;% pivot_longer(cols = -1, names_pattern = regex, 
+                          names_to = c('segment', 'shipping_mode'),
+                          values_drop_na = TRUE)
+```
+
+Transforms the DataFrame into a long format:
+
+- `cols = -1`: Excludes the first column (`order_id`) from pivoting.
+- `names_pattern = regex`: Uses the regex pattern to split column names into `segment` and `shipping_mode`.
+- `values_drop_na = TRUE`: Drops rows with NA values in the pivoted columns.
+
+---
+
+### **11. Sort the Data**
+
+```r
+df &lt;- df %&gt;% arrange(segment, shipping_mode, order_id)
+```
+
+Sorts the data by:
+
+1. `segment`
+2. `shipping_mode`
+3. `order_id`
+
+This ensures that the output is organized in a clear and logical manner.
+
+---**
