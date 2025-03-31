@@ -650,6 +650,8 @@ This ensures that the output is organized in a clear and logical manner.
 
 Below is a screenshot of the cleaned Excel file. 
 
-![Screenshot](https://raw.githubusercontent.com/madhanlibo/data-cleaning/main/pic/Screenshot%202025-03-31%20171953.png)
+![Screenshot](https://raw.githubusercontent.com/madhanlibo/data-cleaning/main/pic/Screenshot%202025-03-31%20182523.png)
+
+
 
 ---
