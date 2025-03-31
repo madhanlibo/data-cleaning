@@ -6,8 +6,7 @@ This document demonstrates how to clean and transform a messy sales dataset usin
 
 Below is a screenshot of the raw data structure from the Excel file "data.xlsx", sheet "Dirty 1". The table has order IDs in the first column, followed by segment and shipping mode combinations, with many unnamed columns.
 
-![Raw Data Screenshot](https://github.com/madhanlibo/data-cleaning/raw/main/pic/raw_data.png)
-*Caption: Raw sales data with order IDs, segments, and shipping modes in a wide format.*
+![Screenshot](https://raw.githubusercontent.com/madhanlibo/data-cleaning/main/pic/Screenshot%202025-03-31%20171953.png)
 
 ---
 
@@ -50,3 +49,5 @@ df_cleaned = (df
 
 # Display the result
 print(df_cleaned)
+
+
